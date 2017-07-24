@@ -39,7 +39,13 @@ namespace InstantGameLauncher {
             }
 
             Uri Server_Address = new Uri(Config.Read("ServerAddress", "Configuration"));
-            ServerAddress = Server_Address.Scheme + "://" + Server_Address.Host + "/soapbox-race-core/Engine.svc";
+
+            if(Server_Address.Port == 80) {
+                ServerAddress = Server_Address.Scheme + "://" + Server_Address.Host + "/soapbox-race-core/Engine.svc";
+            } else {
+                ServerAddress = Server_Address.Scheme + "://" + Server_Address.Host + ":" + Server_Address.Port + "/soapbox-race-core/Engine.svc";
+            }
+
             Username = Config.Read("Username", "Configuration");
             Password = Config.Read("Password", "Configuration");
 
