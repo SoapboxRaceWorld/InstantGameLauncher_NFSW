@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -11,11 +10,11 @@ using System.Xml;
 
 namespace InstantGameLauncher {
     static class Program {
-        [STAThread]
         static void Main() {
             String Username, Password, ServerAddress, serverLoginResponse, encryptedPassword, LoginToken, UserId, Executable;
-            String ConfigFile = Assembly.GetExecutingAssembly().GetName().Name + ".ini";
+            String ConfigFile = AppDomain.CurrentDomain.FriendlyName.Replace(".exe", "") + ".ini";
             IniFile Config = new IniFile(ConfigFile);
+
 
             if (!File.Exists(Directory.GetCurrentDirectory() + "/lightfx.dll")) {
                 File.WriteAllBytes(Directory.GetCurrentDirectory() + "/lightfx.dll", ExtractResource.AsByte("InstantGameLauncher.SoapBoxModules.lightfx.dll"));
@@ -27,12 +26,13 @@ namespace InstantGameLauncher {
             }
 
             if (!File.Exists(ConfigFile)) {
-                DialogResult InstallerAsk = MessageBox.Show(null, "There's no " + ConfigFile + " file. Do you wanna create and edit it?", "InstantGameLauncher", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                DialogResult InstallerAsk = MessageBox.Show(null, "There's no " + ConfigFile + " file. Do you wanna run Settings page?", "InstantGameLauncher", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (InstallerAsk == DialogResult.Yes) {
-                    Config.Write("ServerAddress", "", "Configuration");
-                    Config.Write("Username", "", "Configuration");
-                    Config.Write("Password", "", "Configuration");
-                    Process.Start(ConfigFile);
+
+                    //Let's show form
+                    Application.EnableVisualStyles();
+                    Application.SetCompatibleTextRenderingDefault(false);
+                    Application.Run(new Settings());
                 }
 
                 Environment.Exit(Environment.ExitCode);
@@ -58,8 +58,7 @@ namespace InstantGameLauncher {
             encryptedPassword = sb.ToString();
             serverLoginResponse = "";
 
-            try
-            {
+            try {
                 WebClient wc = new WebClientWithTimeout();
                 wc.Headers.Add("user-agent", "InstantGameLauncher (+https://github.com/metonator/InstantGameLauncher_NFSW)");
                 Server_Address = new Uri(ServerAddress);
@@ -73,44 +72,48 @@ namespace InstantGameLauncher {
                             serverLoginResponse = sr.ReadToEnd();
                         }
                     } else {
-                        MessageBox.Show(null, "Failed to connect to the server. " + ex.Message, "InstantGameLauncher", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Failed to connect to the server. " + ex.Message);
                         Environment.Exit(Environment.ExitCode);
                     }
                 } else {
-                    MessageBox.Show(null, "Failed to connect to the server. " + ex.Message, "InstantGameLauncher", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Failed to connect to the server. " + ex.Message);
                     Environment.Exit(Environment.ExitCode);
                 }
             }
 
-            XmlDocument SBRW_XML = new XmlDocument();
-            SBRW_XML.LoadXml(serverLoginResponse);
+            try {
+                XmlDocument SBRW_XML = new XmlDocument();
+                SBRW_XML.LoadXml(serverLoginResponse);
 
-            XmlNode DescriptionNode, LoginTokenNode, UserIdNode;
+                XmlNode DescriptionNode, LoginTokenNode, UserIdNode;
 
-            DescriptionNode = SBRW_XML.SelectSingleNode("LoginStatusVO/Description");
-            LoginTokenNode = SBRW_XML.SelectSingleNode("LoginStatusVO/LoginToken");
-            UserIdNode = SBRW_XML.SelectSingleNode("LoginStatusVO/UserId");
+                DescriptionNode = SBRW_XML.SelectSingleNode("LoginStatusVO/Description");
+                LoginTokenNode = SBRW_XML.SelectSingleNode("LoginStatusVO/LoginToken");
+                UserIdNode = SBRW_XML.SelectSingleNode("LoginStatusVO/UserId");
 
-            if (String.IsNullOrEmpty(DescriptionNode.InnerText)) {
-                UserId = UserIdNode.InnerText;
-                LoginToken = LoginTokenNode.InnerText;
+                if (String.IsNullOrEmpty(DescriptionNode.InnerText)) {
+                    UserId = UserIdNode.InnerText;
+                    LoginToken = LoginTokenNode.InnerText;
 
-                if(Config.KeyExists("UseExecutable", "Configuration")) {
-                    Executable = Config.Read("UseExecutable", "Configuration");
+                    if(Config.KeyExists("UseExecutable", "Configuration")) {
+                        Executable = Config.Read("UseExecutable", "Configuration");
+                    } else {
+                        Executable = "nfsw.exe";
+                    }
+
+                    if(!File.Exists(Executable)) {
+                        MessageBox.Show("Failed to launch " + Executable + ". File not found.");
+                        Environment.Exit(Environment.ExitCode);
+                    }
+
+                    string filename = Directory.GetCurrentDirectory() + "\\" + Executable;
+                    String cParams = "US " + ServerAddress + " " + LoginToken + " " + UserId;
+                    Process.Start(filename, cParams);
                 } else {
-                    Executable = "nfsw.exe";
+                    MessageBox.Show("Invalid username or password.");
                 }
-
-                if(!File.Exists(Executable)) {
-                    MessageBox.Show(null, "Failed to launch " + Executable + ". File not found.", "InstantGameLauncher", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    Environment.Exit(Environment.ExitCode);
-                }
-
-                string filename = Directory.GetCurrentDirectory() + "\\" + Executable;
-                String cParams = "US " + ServerAddress + " " + LoginToken + " " + UserId;
-                Process.Start(filename, cParams);
-            } else {
-                MessageBox.Show(null, "Invalid username or password.", "InstantGameLauncher", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            } catch {
+                MessageBox.Show("Server is offline.");
             }
         }
     }
