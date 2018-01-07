@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GameLauncherReborn;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -60,23 +61,22 @@ namespace InstantGameLauncher {
 
             try {
                 WebClient wc = new WebClientWithTimeout();
-                wc.Headers.Add("user-agent", "InstantGameLauncher (+https://github.com/metonator/InstantGameLauncher_NFSW)");
                 Server_Address = new Uri(ServerAddress);
                 string BuildURL = ServerAddress + "/User/authenticateUser?email=" + Username + "&password=" + encryptedPassword.ToLower();
                 serverLoginResponse = wc.DownloadString(BuildURL);
             } catch (WebException ex) {
                 if (ex.Status == WebExceptionStatus.ProtocolError) {
                     HttpWebResponse serverReply = (HttpWebResponse)ex.Response;
-                    if ((int)serverReply.StatusCode == 500) {
+                    //if ((int)serverReply.StatusCode == 500) {
                         using (StreamReader sr = new StreamReader(serverReply.GetResponseStream())) {
                             serverLoginResponse = sr.ReadToEnd();
                         }
-                    } else {
-                        MessageBox.Show("Failed to connect to the server. " + ex.Message);
-                        Environment.Exit(Environment.ExitCode);
-                    }
+                    //} else {
+                    //    MessageBox.Show("Failed to connect to the server. " + ex.Message);
+                    //    Environment.Exit(Environment.ExitCode);
+                    //}
                 } else {
-                    MessageBox.Show("Failed to connect to the server. " + ex.Message);
+                    MessageBox.Show(null, "Failed to connect to the server. " + ex.Message, "InstantGameLauncher", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Environment.Exit(Environment.ExitCode);
                 }
             }
@@ -102,7 +102,7 @@ namespace InstantGameLauncher {
                     }
 
                     if(!File.Exists(Executable)) {
-                        MessageBox.Show("Failed to launch " + Executable + ". File not found.");
+                        MessageBox.Show(null, "Failed to launch " + Executable + ". File not found.", "InstantGameLauncher", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         Environment.Exit(Environment.ExitCode);
                     }
 
@@ -110,10 +110,10 @@ namespace InstantGameLauncher {
                     String cParams = "US " + ServerAddress + " " + LoginToken + " " + UserId;
                     Process.Start(filename, cParams);
                 } else {
-                    MessageBox.Show("Invalid username or password.");
+                    MessageBox.Show(null, DescriptionNode.InnerText, "InstantGameLauncher", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             } catch {
-                MessageBox.Show("Server is offline.");
+                MessageBox.Show(null, "Server is offline.", "InstantGameLauncher", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GameLauncherReborn;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -24,8 +25,6 @@ namespace InstantGameLauncher {
             var response = "";
             try {
                 WebClient wc = new WebClientWithTimeout();
-                wc.Headers.Add("user-agent", "GameLauncher (+https://github.com/metonator/GameLauncher_NFSW)");
-
                 string serverurl = "http://nfsw.metonator.ct8.pl/serverlist.txt";
                 response = wc.DownloadString(serverurl);
             } catch (Exception) { }

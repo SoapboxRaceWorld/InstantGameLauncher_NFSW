@@ -86,6 +86,7 @@
             // 
             this.passwordText.Location = new System.Drawing.Point(155, 38);
             this.passwordText.Name = "passwordText";
+            this.passwordText.PasswordChar = '*';
             this.passwordText.Size = new System.Drawing.Size(177, 20);
             this.passwordText.TabIndex = 5;
             // 
@@ -132,7 +133,9 @@
             this.Controls.Add(this.passwordLabel);
             this.Controls.Add(this.emailLabel);
             this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "Settings";
+            this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Settings";
             this.Load += new System.EventHandler(this.Settings_Load);
